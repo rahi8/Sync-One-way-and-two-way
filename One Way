@@ -1,0 +1,23 @@
+$folderReference = 'C:\Users\r5-admin\Desktop\TestA'
+$folderToSync = 'G:\My Drive\TestB'
+
+$referenceFiles = Get-ChildItem -Recurse -Path $folderReference 
+$FolderSyncFiles = Get-ChildItem -recurse -Path $folderToSync
+
+$fileDiffs = Compare-Object -ReferenceObject $referenceFiles -DifferenceObject $FolderSyncFiles 
+
+foreach ($File in $fileDiffs){
+    try {
+            if ($File.SideIndicator -eq "<="){
+
+                $FullSourceObject = $File.InputObject.Fullname
+                $FullTargetObject = $File.InputObject.Fullname.Replace($folderreference, $folderToSync)
+
+                Write-Host "copy File: " $FullSourceObject
+                copy-Item -Path $FullSourceObject -Destination $FullTargetObject
+            }
+    }
+    catch {
+        Write-Error -Message "Something went wrong!" -ErrorAction Stop
+    }
+}
