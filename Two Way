@@ -1,23 +1,35 @@
-$folderReference = 'C:\Users\r5-admin\Desktop\TestA'
-$folderToSync = 'G:\My Drive\TestB'
+$source = 'C:\Users\r5-admin\Desktop\TestA'
+$target = 'G:\My Drive\TestB'
 
-$referenceFiles = Get-ChildItem -Recurse -Path $folderReference 
-$FolderSyncFiles = Get-ChildItem -recurse -Path $folderToSync
 
-$fileDiffs = Compare-Object -ReferenceObject $referenceFiles -DifferenceObject $FolderSyncFiles 
+    $sourceFiles=Get-ChildItem -Path $source -Recurse
+    $targetFiles=Get-ChildItem -Path $target -Recurse
 
-foreach ($File in $fileDiffs){
-    try {
-            if ($File.SideIndicator -eq "<="){
+    $syncMode=2 
 
-                $FullSourceObject = $File.InputObject.Fullname
-                $FullTargetObject = $File.InputObject.Fullname.Replace($folderreference, $folderToSync)
+try{
+$diff=Compare-Object -ReferenceObject $sourceFiles -DifferenceObject $targetFiles
 
-                Write-Host "copy File: " $FullSourceObject
-                copy-Item -Path $FullSourceObject -Destination $FullTargetObject
-            }
+foreach($f in $diff) {
+    if($f.SideIndicator -eq "<=") {
+        $fullSourceObject=$f.InputObject.FullName
+        $fullTargetObject=$f.InputObject.FullName.Replace($source, $target)
+
+        Write-Host "Attemp to copy the following: " $fullSourceObject
+        Copy-Item -Path $fullSourceObject -Destination $fullTargetObject
     }
-    catch {
-        Write-Error -Message "Something went wrong!" -ErrorAction Stop
+
+
+    if($f.SideIndicator -eq "=>" -and $syncMode -eq 2) {
+        $fullSourceObject=$f.InputObject.FullName
+        $fullTargetObject=$f.InputObject.FullName.Replace($target,$source)
+
+        Write-Host "Attemp to copy the following: " $fullSourceObject
+        Copy-Item -Path $fullSourceObject -Destination $fullTargetObject
     }
+
 }
+}      
+  catch {
+  Write-Error -Message "something bad happened!" -ErrorAction Stop
+ }
